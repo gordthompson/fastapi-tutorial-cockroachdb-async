@@ -1,0 +1,6 @@
+asyncpg
+fastapi
+psycopg2-binary
+sqlalchemy
+git+https://github.com/gordthompson/sqlalchemy-cockroachdb@asyncpg_test
+uvicorn
