@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -31,12 +32,12 @@ async def create_user(
     user: schemas.UserCreate,
     async_session: AsyncSession = Depends(get_async_session),
 ):
-    existing_user = await crud.get_user_by_email(
-        async_session, email=user.email
-    )
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    new_user = await crud.create_user(async_session=async_session, user=user)
+    try:
+        new_user = await crud.create_user(
+            async_session=async_session, user=user
+        )
+    except IntegrityError as ie:
+        raise HTTPException(status_code=400, detail=str(ie.orig))
     return new_user
 
 
@@ -58,6 +59,32 @@ async def read_user(
     if the_user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return the_user
+
+
+@app.put("/users/{user_id}", response_model=schemas.User)
+async def update_user(
+    user_id: int,
+    user_info: schemas.UserUpdate,
+    async_session: AsyncSession = Depends(get_async_session),
+):
+    try:
+        the_user = await crud.update_user(
+            async_session, user_id=user_id, user_info=user_info
+        )
+    except IntegrityError as ie:
+        raise HTTPException(status_code=400, detail=str(ie.orig))
+    if the_user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return the_user
+
+
+@app.delete("/users/{user_id}", response_model=schemas.User)
+async def delete_user(
+    user_id: int, async_session: AsyncSession = Depends(get_async_session)
+):
+    deleted_id = await crud.delete_user(async_session, user_id=user_id)
+    if deleted_id is None:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @app.post("/users/{user_id}/items/", response_model=schemas.Item)

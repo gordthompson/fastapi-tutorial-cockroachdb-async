@@ -5,6 +5,10 @@ from sqlalchemy.orm import selectinload
 from . import models, schemas
 
 
+def hash_password(pwd):
+    return pwd + "_NotReallyHashed"
+
+
 async def get_user(async_session: AsyncSession, user_id: int):
     result = await async_session.execute(
         select(models.User)
@@ -37,15 +41,50 @@ async def get_users(
 
 
 async def create_user(async_session: AsyncSession, user: schemas.UserCreate):
-    fake_hashed_password = user.password + "notreallyhashed"
+    hashed_password = hash_password(user.password)
     new_user = models.User(
         email=user.email,
-        hashed_password=fake_hashed_password,
+        hashed_password=hashed_password,
         items=[],  # so pydantic won't trigger a lazy load
     )
     async_session.add(new_user)
     await async_session.commit()
     return new_user
+
+
+async def update_user(
+    async_session: AsyncSession, user_id: int, user_info: schemas.UserUpdate
+):
+    results = await async_session.execute(
+        select(models.User)
+        .where(models.User.id == user_id)
+        .options(selectinload(models.User.items))
+    )
+    the_user = results.scalar()
+    if the_user is None:
+        return None
+    new_password = user_info.__dict__["password"]
+    hashed_password = (
+        hash_password(new_password)
+        if new_password
+        else the_user.hashed_password
+    )
+    for k, v in user_info.__dict__.items():
+        if k == "password":
+            setattr(the_user, "hashed_password", hashed_password)
+        else:
+            setattr(the_user, k, v)
+    await async_session.commit()
+    return the_user
+
+
+async def delete_user(async_session: AsyncSession, user_id: int):
+    the_user = await async_session.get(models.User, user_id)
+    if the_user is None:
+        return None
+    await async_session.delete(the_user)
+    await async_session.commit()
+    return user_id
 
 
 async def get_items(

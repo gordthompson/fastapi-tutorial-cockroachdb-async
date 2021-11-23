@@ -28,6 +28,11 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserUpdate(UserBase):
+    password: Optional[str] = None
+    is_active: bool = True
+
+
 class User(UserBase):
     id: int
     is_active: bool
