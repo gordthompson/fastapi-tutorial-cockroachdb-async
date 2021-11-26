@@ -67,6 +67,12 @@ async def update_user(
     user_info: schemas.UserUpdate,
     async_session: AsyncSession = Depends(get_async_session),
 ):
+    """
+    If a string value is supplied for `"password":`
+    the new password will be hashed and stored in the database.
+    To update a User without changing their password use
+    `"password": null` or simply omit `"password":` from the request body.
+    """
     try:
         the_user = await crud.update_user(
             async_session, user_id=user_id, user_info=user_info
