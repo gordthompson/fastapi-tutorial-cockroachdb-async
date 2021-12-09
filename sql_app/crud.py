@@ -5,17 +5,14 @@ from sqlalchemy.orm import selectinload
 from . import models, schemas
 
 
-def hash_password(pwd):
+def hash_password(pwd: str) -> str:
     return pwd + "_NotReallyHashed"
 
 
 async def get_user(async_session: AsyncSession, user_id: int):
-    result = await async_session.execute(
-        select(models.User)
-        .where(models.User.id == user_id)
-        .options(selectinload(models.User.items))
+    return await async_session.get(
+        models.User, user_id, options=[selectinload(models.User.items)]
     )
-    return result.scalars().first()
 
 
 async def get_user_by_email(async_session: AsyncSession, email: str):
@@ -55,12 +52,9 @@ async def create_user(async_session: AsyncSession, user: schemas.UserCreate):
 async def update_user(
     async_session: AsyncSession, user_id: int, user_info: schemas.UserUpdate
 ):
-    results = await async_session.execute(
-        select(models.User)
-        .where(models.User.id == user_id)
-        .options(selectinload(models.User.items))
+    the_user = await async_session.get(
+        models.User, user_id, options=[selectinload(models.User.items)]
     )
-    the_user = results.scalar()
     if the_user is None:
         return None
     new_password = user_info.__dict__["password"]
@@ -79,7 +73,9 @@ async def update_user(
 
 
 async def delete_user(async_session: AsyncSession, user_id: int):
-    the_user = await async_session.get(models.User, user_id)
+    the_user = await async_session.get(
+        models.User, user_id, options=[selectinload(models.User.items)]
+    )
     if the_user is None:
         return None
     await async_session.delete(the_user)
