@@ -2,5 +2,5 @@ asyncpg
 fastapi
 psycopg2-binary
 sqlalchemy
-git+https://github.com/gordthompson/sqlalchemy-cockroachdb@pr20211117a
+sqlalchemy-cockroachdb>=1.4.3
 uvicorn
