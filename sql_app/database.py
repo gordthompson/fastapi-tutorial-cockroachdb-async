@@ -8,7 +8,6 @@ SQLALCHEMY_DATABASE_URL = URL.create(
     host="localhost",
     port=26257,
     database="defaultdb",
-    query={"disable_cockroachdb_telemetry": "True"},
 )
 
 async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
