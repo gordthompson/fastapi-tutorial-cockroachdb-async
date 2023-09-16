@@ -84,13 +84,14 @@ async def update_user(
     return the_user
 
 
-@app.delete("/users/{user_id}", response_model=schemas.User)
+@app.delete("/users/{user_id}", response_model=schemas.StatusMessage)
 async def delete_user(
     user_id: int, async_session: AsyncSession = Depends(get_async_session)
 ):
     deleted_id = await crud.delete_user(async_session, user_id=user_id)
     if deleted_id is None:
         raise HTTPException(status_code=404, detail="User not found")
+    return dict(message="Delete successful.")
 
 
 @app.post("/users/{user_id}/items/", response_model=schemas.Item)

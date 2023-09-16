@@ -40,3 +40,7 @@ class User(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class StatusMessage(BaseModel):
+    message: str
