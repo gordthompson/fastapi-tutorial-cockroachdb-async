@@ -14,7 +14,10 @@ SQLALCHEMY_DATABASE_URL = URL.create(
     port=26257,
     database="defaultdb",
 )
-async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+async_engine = create_async_engine(
+    SQLALCHEMY_DATABASE_URL,
+    isolation_level="SERIALIZABLE",
+)
 # ---------------------------------------------------------
 
 # ========================================================
